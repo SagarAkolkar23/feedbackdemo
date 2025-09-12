@@ -1,4 +1,4 @@
-import 'package:feedbackdemo/features/presentation/screens/feedbackScreen.dart';
+import 'package:feedbackdemo/core/theme/routes/routes.dart';
 import 'package:flutter/material.dart';
 
 class FeedbackApp extends StatelessWidget {
@@ -6,10 +6,10 @@ class FeedbackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Feedback Demo (Web)',
       debugShowCheckedModeBanner: false,
-      home: FeedbackFormScreen(),
+      routerConfig: AppRoutes.router,
     );
   }
 }

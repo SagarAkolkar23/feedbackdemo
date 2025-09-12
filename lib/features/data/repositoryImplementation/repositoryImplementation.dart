@@ -11,7 +11,8 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
   @override
   Future<FeedbackEntity> submitFeedback(
     FeedbackEntity entity,
-    String token, // 👈 added token param
+    String token,
+    dynamic file, // 👈 added file param
   ) async {
     final request = FeedbackRequestModel(
       description: entity.description,
@@ -21,8 +22,12 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
       imageUrl: entity.imageUrl,
     );
 
-    // 👇 pass token down
-    final response = await remoteDataSource.submitFeedback(request, token);
+    // 👇 forward file + token
+    final response = await remoteDataSource.submitFeedback(
+      request,
+      token,
+      file,
+    );
 
     return FeedbackEntity(
       description: entity.description,

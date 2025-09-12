@@ -12,7 +12,9 @@ import 'package:feedbackdemo/features/presentation/controllers/feedbackControlle
 import '../../domain/entity/feedbackEntity.dart';
 
 class FeedbackFormScreen extends ConsumerStatefulWidget {
-  const FeedbackFormScreen({super.key});
+  final List<String> tags;
+  final int entityId;
+  const FeedbackFormScreen({super.key,required this.entityId, required this.tags});
 
   @override
   ConsumerState<FeedbackFormScreen> createState() => _FeedbackFormScreenState();
@@ -198,6 +200,48 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
+
+                    //TAGS SECTION
+                    if (widget.tags.isNotEmpty) ...[
+                      const Text(
+                        "Feedback Categories:",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: widget.tags
+                            .map(
+                              (tag) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.indigo.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.indigo.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: const TextStyle(
+                                    color: Colors.indigo,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
 
                     // Media upload
                     Row(
@@ -491,7 +535,6 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                       const SizedBox(height: 28),
                     ],
 
-                    // Submit
                     ElevatedButton(
                       onPressed: isOtpVerified
                           ? () async {
@@ -500,12 +543,11 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                               final entity = FeedbackEntity(
                                 description: _description ?? "",
                                 isHappy: (_qualityRating ?? 0) == 1,
-                                tags: ["quality", "experience"],
+                                tags: widget.tags,
                                 entityMentions: [],
                                 imageUrl: getSelectedFileName(),
                               );
 
-                              // 👇 get token
                               final otpState = ref.read(otpControllerProvider);
                               final token = otpState.value?.token ?? "";
 
@@ -518,10 +560,10 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                                 return;
                               }
 
-                              // 👇 pass token
                               await feedbackNotifier.submitFeedback(
                                 entity,
                                 token,
+                                _selectedMedia,
                               );
 
                               final state = ref.read(
@@ -586,8 +628,7 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                    )
-
+                    ),
                   ],
                 ),
               ),

@@ -12,13 +12,12 @@ class FeedbackController extends StateNotifier<AsyncValue<FeedbackEntity?>> {
 
   FeedbackController(this.ref) : super(const AsyncValue.data(null));
 
-  // 👇 Now takes token also
-  Future<void> submitFeedback(FeedbackEntity entity, String token) async {
+  Future<void> submitFeedback(FeedbackEntity entity, String token, dynamic file) async {
     state = const AsyncValue.loading();
 
     try {
       final repo = ref.read(feedbackRepositoryProvider);
-      final result = await repo.submitFeedback(entity, token); // 👈 pass token
+      final result = await repo.submitFeedback(entity, token, file); 
       state = AsyncValue.data(result);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
