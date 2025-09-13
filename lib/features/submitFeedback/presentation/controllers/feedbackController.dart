@@ -1,4 +1,4 @@
-import 'package:feedbackdemo/features/presentation/providers/feedbackProvider.dart';
+import 'package:feedbackdemo/features/submitFeedback/presentation/providers/feedbackProvider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entity/feedbackEntity.dart';
 

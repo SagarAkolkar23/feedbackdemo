@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:feedbackdemo/features/domain/entity/otpEntity.dart';
-import 'package:feedbackdemo/features/presentation/providers/otpProvider.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/entity/otpEntity.dart';
+import 'package:feedbackdemo/features/submitFeedback/presentation/providers/otpProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +11,7 @@ class OtpController extends StateNotifier<AsyncValue<OtpEntity?>> {
   final Ref ref;
 
   bool showOtpField = false;
+  bool isVerified = false; // 🔑 track OTP verification
   int _seconds = 120;
   Timer? _timer;
   final TextEditingController otpController = TextEditingController();
@@ -23,19 +24,16 @@ class OtpController extends StateNotifier<AsyncValue<OtpEntity?>> {
     return "$minutes:$seconds";
   }
 
-  /// Request OTP from backend (does NOT start timer automatically)
   Future<void> sendOtp(String phone) async {
     state = const AsyncValue.loading();
     try {
       final result = await ref.read(sendOtpProvider).call(phone);
       state = AsyncValue.data(result);
-      // ✅ Timer will be started manually by UI
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
 
-  /// Verify OTP with backend
   Future<void> verifyOtp(String phone) async {
     if (otpController.text.isEmpty) return;
 
@@ -46,14 +44,16 @@ class OtpController extends StateNotifier<AsyncValue<OtpEntity?>> {
           .call(phone, otpController.text);
       state = AsyncValue.data(result);
 
-      // stop timer once verified
+      isVerified = true; // ✅ mark verified ONLY after success
       stopOtpTimer();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      isVerified = false;
     }
+
+    state = _copyWithSame(); // refresh UI
   }
 
-  /// Starts a 2-min timer (called manually when user clicks "Get OTP")
   void startOtpTimer() {
     showOtpField = true;
     _seconds = 120;
@@ -66,7 +66,7 @@ class OtpController extends StateNotifier<AsyncValue<OtpEntity?>> {
       } else {
         _seconds--;
       }
-      state = _copyWithSame(); // refresh UI
+      state = _copyWithSame();
     });
   }
 
@@ -91,7 +91,6 @@ class OtpController extends StateNotifier<AsyncValue<OtpEntity?>> {
     super.dispose();
   }
 }
-
 final otpControllerProvider =
     StateNotifierProvider<OtpController, AsyncValue<OtpEntity?>>(
       (ref) => OtpController(ref),

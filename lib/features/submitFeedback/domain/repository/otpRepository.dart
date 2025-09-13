@@ -1,4 +1,4 @@
-import 'package:feedbackdemo/features/domain/entity/otpEntity.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/entity/otpEntity.dart';
 
 
 abstract class OtpRepository {

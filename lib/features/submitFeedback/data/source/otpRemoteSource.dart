@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:feedbackdemo/features/data/model/otpResponseModel.dart';
+import 'package:feedbackdemo/features/submitFeedback/data/model/otpResponseModel.dart';
 import 'package:http/http.dart' as http;
 
 class OtpRemoteDataSource {

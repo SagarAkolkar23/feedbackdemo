@@ -57,11 +57,11 @@ class _EntityListScreenState extends State<EntityListScreen> {
                             .map((t) => t.name)
                             .toList();
 
-                        // ✅ Encode tags safely for URL
-                        final encodedTags = Uri.encodeComponent(tags.join(","));
-
-                        // ✅ Navigate with entityId + tags in URL
-                        context.go('/feedbackform/${entity.id}/$encodedTags');
+                        // ✅ Navigate and pass entity + tags using "extra"
+                        context.go(
+                          '/feedbackform/${entity.id}/${Uri.encodeComponent(tags.join(","))}',
+                          extra: entityFull.details, // pass full details here
+                        );
                       } catch (e) {
                         if (!mounted) return;
                         ScaffoldMessenger.of(
@@ -69,6 +69,7 @@ class _EntityListScreenState extends State<EntityListScreen> {
                         ).showSnackBar(SnackBar(content: Text('Error: $e')));
                       }
                     },
+
                     child: const Text('Fetch Details'),
                   ),
                 ),

@@ -1,7 +1,7 @@
-import 'package:feedbackdemo/features/data/repositoryImplementation/otpRepositoryImpl.dart';
-import 'package:feedbackdemo/features/data/source/otpRemoteSource.dart';
-import 'package:feedbackdemo/features/domain/useCases/sendOtp.dart';
-import 'package:feedbackdemo/features/domain/useCases/verifyOtp.dart';
+import 'package:feedbackdemo/features/submitFeedback/data/repositoryImplementation/otpRepositoryImpl.dart';
+import 'package:feedbackdemo/features/submitFeedback/data/source/otpRemoteSource.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/useCases/sendOtp.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/useCases/verifyOtp.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 

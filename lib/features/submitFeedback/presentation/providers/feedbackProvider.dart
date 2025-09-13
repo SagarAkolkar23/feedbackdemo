@@ -1,5 +1,5 @@
-import 'package:feedbackdemo/features/data/repositoryImplementation/repositoryImplementation.dart';
-import 'package:feedbackdemo/features/data/source/feedbackRemoteDataSource.dart';
+import 'package:feedbackdemo/features/submitFeedback/data/repositoryImplementation/repositoryImplementation.dart';
+import 'package:feedbackdemo/features/submitFeedback/data/source/feedbackRemoteDataSource.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 

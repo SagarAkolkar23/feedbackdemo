@@ -1,6 +1,6 @@
-import 'package:feedbackdemo/features/data/source/otpRemoteSource.dart';
-import 'package:feedbackdemo/features/domain/entity/otpEntity.dart';
-import 'package:feedbackdemo/features/domain/repository/otpRepository.dart';
+import 'package:feedbackdemo/features/submitFeedback/data/source/otpRemoteSource.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/entity/otpEntity.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/repository/otpRepository.dart';
 
 class OtpRepositoryImpl implements OtpRepository {
   final OtpRemoteDataSource remoteDataSource;

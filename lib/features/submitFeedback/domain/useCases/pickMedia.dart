@@ -1,5 +1,5 @@
 import 'dart:html' as html;
-import 'package:feedbackdemo/features/data/source/pickMediaSource.dart';
+import 'package:feedbackdemo/features/submitFeedback/data/source/pickMediaSource.dart';
 
 class PickMedia {
   final MediaRemoteDataSource dataSource;

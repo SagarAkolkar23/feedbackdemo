@@ -1,4 +1,4 @@
-import 'package:feedbackdemo/features/domain/repository/feedbackRepo.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/repository/feedbackRepo.dart';
 import '../../domain/entity/feedbackEntity.dart';
 import '../model/feedbackRequestModel.dart';
 import '../source/feedbackRemoteDataSource.dart';

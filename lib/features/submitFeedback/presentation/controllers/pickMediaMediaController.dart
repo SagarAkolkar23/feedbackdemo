@@ -1,4 +1,4 @@
-import 'package:feedbackdemo/features/domain/useCases/pickMedia.dart';
+import 'package:feedbackdemo/features/submitFeedback/domain/useCases/pickMedia.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:html' as html;
 
