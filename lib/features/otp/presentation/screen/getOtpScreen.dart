@@ -3,6 +3,7 @@ import 'package:feedbackdemo/features/otp/presentation/provider/otpProvider.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 
 class GetOtpScreen extends ConsumerStatefulWidget {
   const GetOtpScreen({super.key});
@@ -129,6 +130,10 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
                                 textInputAction: TextInputAction.done,
+                                maxLength: 10, // ⬅️ This ensures only 10 digits can be typed
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly, // ⬅️ Only digits allowed
+                                ],
                                 onFieldSubmitted: (_) {
                                   if (_isPhoneValid) _submitOtp();
                                 },
@@ -143,13 +148,14 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
                                     horizontal: 14,
                                     vertical: 16,
                                   ),
+                                  counterText: "",
                                 ),
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
                                     return 'Please enter a phone number';
                                   }
-                                  if (value.length < 10) {
-                                    return 'Please enter a valid phone number';
+                                  if (value.length != 10) {
+                                    return 'Phone number must be exactly 10 digits';
                                   }
                                   return null;
                                 },

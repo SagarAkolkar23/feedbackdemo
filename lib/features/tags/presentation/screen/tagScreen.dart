@@ -258,7 +258,7 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              "Add '$_searchQuery' as a new tag",
+                              "Click me to Add '$_searchQuery' tag +",
                               style: const TextStyle(
                                 color: Colors.green,
                                 fontWeight: FontWeight.w500,

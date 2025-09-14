@@ -33,6 +33,7 @@ class EntityRemoteDataSourceImpl implements EntityRemoteDataSource {
     required String username,
   }) async {
     try {
+      
       final response = await dio.post(
         '$baseUrl/auth/register',
         data: {
@@ -42,6 +43,7 @@ class EntityRemoteDataSourceImpl implements EntityRemoteDataSource {
           'pincode': pincode,
           'industry' : industry,
           'username': username,
+          'description':description,
         },
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
