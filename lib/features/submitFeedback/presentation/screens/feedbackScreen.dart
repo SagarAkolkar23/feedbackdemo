@@ -656,19 +656,12 @@ Widget _buildSubmitButton(
         };
       }).toList();
 
-      // Build final description (optional)
-      final ratingsDetail = _tagRatings.entries
-          .map((e) {
-            final emoji = e.value < emojis.length ? emojis[e.value] : 'N/A';
-            return '${e.key}: $emoji';
-          })
-          .join(' | ');
+      
 
       final finalDescription =
           _description ?? "";
 
       // Determine userId: only include if phone is verified
-      final phoneVerified = otpNotifier.isVerified;
       final otpEntity = otpCtrl.asData?.value;
       final userId = (otpNotifier.isVerified && otpEntity != null) ? otpEntity.userId : null;
 

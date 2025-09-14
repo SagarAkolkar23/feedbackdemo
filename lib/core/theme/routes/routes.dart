@@ -1,14 +1,24 @@
-import 'package:feedbackdemo/features/getEntity/entityScreen.dart';
-import 'package:feedbackdemo/features/getEntity/entityDetailsModel.dart';
-import 'package:feedbackdemo/features/submitFeedback/presentation/screens/feedbackScreen.dart';
-import 'package:go_router/go_router.dart';
+import 'package:feedbackdemo/features/details/presentation/screen/companyDetailsScreen.dart';
+import 'package:feedbackdemo/features/otp/presentation/screen/getOtpScreen.dart';
+import 'package:feedbackdemo/features/otp/presentation/screen/verifyOtpScreen.dart';
+import 'package:feedbackdemo/features/tags/presentation/screen/tagScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:feedbackdemo/features/getEntity/entityScreen.dart';
+import 'package:feedbackdemo/features/submitFeedback/presentation/screens/feedbackScreen.dart';
+
 
 class AppRoutes {
   static final router = GoRouter(
-    initialLocation: '/EntityList',
+    initialLocation: '/EntityList', // ✅ starting point
     routes: [
-      // ✅ Only entityId & entityHandle in path
+      // -------------------------------
+      // Feedback Demo Routes
+      // -------------------------------
+      GoRoute(
+        path: '/EntityList',
+        builder: (context, state) => const EntityListScreen(),
+      ),
       GoRoute(
         path: '/feedbackform/:entityId/:entityHandle',
         builder: (context, state) {
@@ -22,9 +32,22 @@ class AppRoutes {
           );
         },
       ),
+
+      // -------------------------------
+      // Entity Routes
+      // -------------------------------
       GoRoute(
-        path: '/',
-        builder: (context, state) => const EntityListScreen(),
+        path: '/registerentity',
+        builder: (context, state) => CompanyDetailsPage(),
+      ),
+      GoRoute(
+        path: '/tagselection',
+        builder: (context, state) => TagSelectionPage(),
+      ),
+      GoRoute(path: '/get-otp', builder: (context, state) => GetOtpScreen()),
+      GoRoute(
+        path: '/verify-otp',
+        builder: (context, state) => VerifyOtpScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

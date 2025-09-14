@@ -16,7 +16,17 @@ class _EntityListScreenState extends State<EntityListScreen> {
   @override
   void initState() {
     super.initState();
+    _loadEntities();
+  }
+
+  void _loadEntities() {
     _entities = ApiService.getAllEntities();
+  }
+
+  Future<void> _refreshEntities() async {
+    setState(() {
+      _loadEntities();
+    });
   }
 
   @override
@@ -31,33 +41,60 @@ class _EntityListScreenState extends State<EntityListScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No entities found.'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('No entities found.'),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => context.go('/registerentity'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Entity'),
+                  ),
+                ],
+              ),
+            );
           }
 
           final entities = snapshot.data!;
 
-          return ListView.builder(
-            itemCount: entities.length,
-            itemBuilder: (context, index) {
-              final entity = entities[index];
-              return Card(
-                margin: const EdgeInsets.all(8),
-                child: ListTile(
-                  title: Text(entity.handle),
-                  trailing: ElevatedButton(
-                    onPressed: () {
-                      // ✅ Navigate passing only entityId & entityHandle
-                      context.go(
-                        '/feedbackform/${entity.id}/${Uri.encodeComponent(entity.handle)}',
-                      );
-                    },
-                    child: const Text('Open Feedback'),
+          return RefreshIndicator(
+            onRefresh: _refreshEntities,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: entities.length,
+              itemBuilder: (context, index) {
+                final entity = entities[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  child: ListTile(
+                    title: Text(entity.handle),
+                    trailing: ElevatedButton(
+                      onPressed: () {
+                        context.go(
+                          '/feedbackform/${entity.id}/${Uri.encodeComponent(entity.handle)}',
+                        );
+                      },
+                      child: const Text('Open Feedback'),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          // Navigate to register entity screen
+          context.go('/registerentity');
+          // Optional: reload entities after returning
+          await _refreshEntities();
+        },
+        icon: const Icon(Icons.add),
+        label: const Text("Add Entity"),
+        backgroundColor: Colors.blue,
       ),
     );
   }
