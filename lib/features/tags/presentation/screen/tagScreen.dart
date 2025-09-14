@@ -1,4 +1,5 @@
 import 'package:feedbackdemo/features/details/presentation/provider/entityProvider.dart';
+import 'package:feedbackdemo/features/tags/presentation/provider/getTagProvider.dart';
 import 'package:feedbackdemo/features/tags/presentation/provider/tagsProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,21 +13,9 @@ class TagSelectionPage extends ConsumerStatefulWidget {
 }
 
 class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
-  final List<String> allTags = [
-    "Dangerous",
-    "Accident Risk",
-    "Tag 1",
-    "Tag 2",
-    "Tag 3",
-    "Alert",
-    "Sad",
-    "Painful",
-    "Tag 4",
-    "Tag 5",
-    "Unsafe",
-  ];
-
   final List<String> selectedTags = [];
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
 
   void toggleTag(String tag) {
     setState(() {
@@ -52,13 +41,19 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final entityAsync = ref.watch(entityControllerProvider);
     final tagState = ref.watch(tagControllerProvider);
-
     final entity = entityAsync.value;
     final isButtonEnabled = selectedTags.isNotEmpty && entity != null;
 
+    // Listen for successful tag submission
     ref.listen(tagControllerProvider, (previous, next) {
       next.whenOrNull(
         data: (_) {
@@ -68,43 +63,34 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
       );
     });
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 800;
+    // Fetch tags from backend
+    final tagsAsync = entity != null
+        ? ref.watch(allTagsProvider(entity.token))
+        : AsyncValue.data(<String>[]);
 
-        return Scaffold(
-          body: isWide
-              ? Row(
-                  children: [
-                    Expanded(flex: 1, child: _buildLeftImage()),
-                    Expanded(
-                      flex: 1,
-                      child: _buildRightPanel(
-                        tagState,
-                        entity,
-                        isButtonEnabled,
-                      ),
-                    ),
-                  ],
-                )
-              : Column(
-                  children: [
-                    SizedBox(height: 200, child: _buildLeftImage()),
-                    Expanded(
-                      child: _buildRightPanel(
-                        tagState,
-                        entity,
-                        isButtonEnabled,
-                      ),
-                    ),
-                  ],
+    final screenWidth = MediaQuery.of(context).size.width;
+    final showImage = screenWidth > 600; // hide image on small screens
+
+    return Scaffold(
+      body: showImage
+          ? Row(
+              children: [
+                Expanded(flex: 1, child: _buildLeftImage()),
+                Expanded(
+                  flex: 1,
+                  child: _buildRightPanel(
+                    tagState,
+                    entity,
+                    isButtonEnabled,
+                    tagsAsync,
+                  ),
                 ),
-        );
-      },
+              ],
+            )
+          : _buildRightPanel(tagState, entity, isButtonEnabled, tagsAsync),
     );
   }
 
-  /// ✅ FIX: Return Container instead of Expanded
   Widget _buildLeftImage() {
     return Container(
       decoration: const BoxDecoration(
@@ -117,27 +103,27 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
     );
   }
 
-  /// ✅ Added proper typing for clarity
   Widget _buildRightPanel(
     AsyncValue tagState,
     dynamic entity,
     bool isButtonEnabled,
+    AsyncValue<List<String>> tagsAsync,
   ) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Image.asset(
-              "assets/Image/Pictonion.png",
-              height: 70,
-              width: 300,
-              fit: BoxFit.contain,
+          if (MediaQuery.of(context).size.width > 600)
+            Center(
+              child: Image.asset(
+                "assets/Image/Pictonion.png",
+                height: 70,
+                width: 300,
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
           const SizedBox(height: 20),
-
           const Text(
             "Customize Your Feedback Tags",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -150,7 +136,7 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
           ),
           const SizedBox(height: 20),
 
-          // ✅ Transparent bar for selected tags
+          // Selected tags
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -162,56 +148,132 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: selectedTags.isEmpty
-                    ? [
-                        const Text(
+                    ? const [
+                        Text(
                           "No tags selected yet",
                           style: TextStyle(color: Colors.black54, fontSize: 13),
                         ),
                       ]
-                    : selectedTags.map((tag) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Chip(
-                            label: Text(tag),
-                            backgroundColor: Colors.blue.shade100,
-                            labelStyle: const TextStyle(color: Colors.blue),
-                            deleteIcon: const Icon(Icons.close, size: 18),
-                            onDeleted: () => toggleTag(tag),
-                          ),
-                        );
-                      }).toList(),
+                    : selectedTags
+                          .map(
+                            (tag) => Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Chip(
+                                label: Text(tag),
+                                backgroundColor: Colors.blue.shade100,
+                                labelStyle: const TextStyle(color: Colors.blue),
+                                deleteIcon: const Icon(Icons.close, size: 18),
+                                onDeleted: () => toggleTag(tag),
+                              ),
+                            ),
+                          )
+                          .toList(),
               ),
             ),
           ),
           const SizedBox(height: 16),
 
-          // ✅ Tags list
+          // Search field
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: "Search or add tags...",
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value.toLowerCase();
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Tag list
           Expanded(
-            child: SingleChildScrollView(
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: allTags.map((tag) {
-                  final isSelected = selectedTags.contains(tag);
-                  return ChoiceChip(
-                    label: Text(tag),
-                    selected: isSelected,
-                    selectedColor: Colors.blue,
-                    backgroundColor: Colors.transparent,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.blue,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    shape: StadiumBorder(side: BorderSide(color: Colors.blue)),
-                    onSelected: (_) => toggleTag(tag),
-                  );
-                }).toList(),
+            child: tagsAsync.when(
+              data: (allTags) {
+                final filteredTags = allTags
+                    .where((tag) => tag.toLowerCase().contains(_searchQuery))
+                    .toList();
+
+                final canAddCustomTag =
+                    _searchQuery.isNotEmpty &&
+                    !allTags.map((e) => e.toLowerCase()).contains(_searchQuery);
+
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: filteredTags.map((tag) {
+                          final isSelected = selectedTags.contains(tag);
+                          return ChoiceChip(
+                            label: Text(tag),
+                            selected: isSelected,
+                            selectedColor: Colors.blue,
+                            backgroundColor: Colors.transparent,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.blue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            shape: StadiumBorder(
+                              side: BorderSide(color: Colors.blue),
+                            ),
+                            onSelected: (_) => toggleTag(tag),
+                          );
+                        }).toList(),
+                      ),
+                      if (canAddCustomTag)
+                        GestureDetector(
+                          onTap: () {
+                            final newTag = _searchController.text.trim();
+                            if (newTag.isNotEmpty &&
+                                !selectedTags.contains(newTag)) {
+                              setState(() {
+                                selectedTags.add(newTag);
+                                _searchController.clear();
+                                _searchQuery = "";
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 12,
+                            ),
+                            margin: const EdgeInsets.only(top: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              "Add '$_searchQuery' as a new tag",
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, st) => Text(
+                "Error loading tags: $err",
+                style: const TextStyle(color: Colors.red),
               ),
             ),
           ),
           const SizedBox(height: 20),
 
-          // ✅ Safe null check for entity
+          // Submit button
           tagState.when(
             data: (_) => SizedBox(
               width: double.infinity,
