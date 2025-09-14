@@ -16,6 +16,8 @@ class EntityController extends StateNotifier<AsyncValue<Entity?>> {
     required String city,
     required String pincode,
     required String industry,
+    required String email,
+    required String description,
     required String username,
   }) async {
     // Set state to loading while API call is in progress
@@ -28,6 +30,8 @@ class EntityController extends StateNotifier<AsyncValue<Entity?>> {
         city: city,
         pincode: pincode,
         industry : industry,
+        email: email,
+        description: description,
         username: username,
       );
 

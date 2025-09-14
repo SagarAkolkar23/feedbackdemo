@@ -14,9 +14,24 @@ class GetOtpScreen extends ConsumerStatefulWidget {
 class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isPhoneValid = false; // track validity
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_validatePhone);
+  }
+
+  void _validatePhone() {
+    final text = _phoneController.text.trim();
+    setState(() {
+      _isPhoneValid = text.length == 10 && RegExp(r'^[0-9]+$').hasMatch(text);
+    });
+  }
 
   @override
   void dispose() {
+    _phoneController.removeListener(_validatePhone);
     _phoneController.dispose();
     super.dispose();
   }
@@ -55,7 +70,6 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
       backgroundColor: Colors.white,
       body: Row(
         children: [
-          // Left side background image (desktop/tablet only)
           if (isDesktop)
             Expanded(
               flex: 1,
@@ -68,8 +82,6 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
                 ),
               ),
             ),
-
-          // Right side: Centered Logo + Form + Button
           Expanded(
             flex: 1,
             child: SafeArea(
@@ -98,15 +110,12 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Logo
                               Image.asset(
                                 "assets/Image/Pictonion.png",
                                 height: 80,
                                 fit: BoxFit.contain,
                               ),
                               const SizedBox(height: 40),
-
-                              // Register title
                               const Text(
                                 "Register",
                                 style: TextStyle(
@@ -116,13 +125,13 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
                                 ),
                               ),
                               const SizedBox(height: 28),
-
-                              // Phone number field
                               TextFormField(
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
                                 textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) => _submitOtp(),
+                                onFieldSubmitted: (_) {
+                                  if (_isPhoneValid) _submitOtp();
+                                },
                                 decoration: const InputDecoration(
                                   hintText: "Enter Your Phone Number",
                                   border: OutlineInputBorder(
@@ -147,13 +156,14 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
                               ),
                               const SizedBox(height: 24),
 
-                              // Send OTP button
                               otpState.when(
                                 data: (_) => SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF0D63F3),
+                                      backgroundColor: _isPhoneValid
+                                          ? const Color(0xFF0D63F3)
+                                          : Colors.grey.shade400,
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 16,
@@ -166,7 +176,9 @@ class _GetOtpScreenState extends ConsumerState<GetOtpScreen> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    onPressed: _submitOtp,
+                                    onPressed: _isPhoneValid
+                                        ? _submitOtp
+                                        : null,
                                     child: const Text("Send OTP"),
                                   ),
                                 ),

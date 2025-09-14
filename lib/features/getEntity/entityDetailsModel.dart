@@ -6,8 +6,9 @@ class EntityDetails {
   final String state;
   final String city;
   final String pincode; // keep as String (force convert)
-  final String industry;
+  final String email;
   final String description;
+  final String industry;
 
   EntityDetails({
     required this.id,
@@ -17,8 +18,9 @@ class EntityDetails {
     required this.state,
     required this.city,
     required this.pincode,
-    required this.industry,
     required this.description,
+    required this.email,
+    required this.industry,
   });
 
   factory EntityDetails.fromJson(Map<String, dynamic> json) {
@@ -30,8 +32,9 @@ class EntityDetails {
       state: json['state'] ?? '',
       city: json['city'] ?? '',
       pincode: json['pincode']?.toString() ?? '', // 🔑 Convert to String
-      industry: json['industry'] ?? '',
+      email: json['email']?.toString() ?? '',
       description: json['description'] ?? '',
+      industry: json['industry'] ?? '',
     );
   }
 }

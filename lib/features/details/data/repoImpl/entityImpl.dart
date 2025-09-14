@@ -16,6 +16,8 @@ class EntityRepositoryImpl implements EntityRepository {
     required String city,
     required String pincode,
     required String industry,
+    required String email,
+    required String description,
     required String username,
   }) {
     return remoteDataSource.registerEntity(
@@ -24,6 +26,8 @@ class EntityRepositoryImpl implements EntityRepository {
       city: city,
       pincode: pincode,
       industry : industry,
+      email: email,
+      description: description,
       username: username,
     );
   }

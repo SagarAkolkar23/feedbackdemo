@@ -8,6 +8,8 @@ abstract class EntityRepository {
     required String city,
     required String pincode,
     required String industry,
+    required String email,
+    required String description,
     required String username,
   });
 }

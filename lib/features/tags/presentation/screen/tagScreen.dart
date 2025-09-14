@@ -192,6 +192,7 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
           const SizedBox(height: 16),
 
           // Tag list
+          // Tag list
           Expanded(
             child: tagsAsync.when(
               data: (allTags) {
@@ -203,6 +204,11 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
                     _searchQuery.isNotEmpty &&
                     !allTags.map((e) => e.toLowerCase()).contains(_searchQuery);
 
+                // Limit visible tags to 10
+                final visibleTags = filteredTags.length > 10
+                    ? filteredTags.sublist(0, 10)
+                    : filteredTags;
+
                 return SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +216,7 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
                       Wrap(
                         spacing: 10,
                         runSpacing: 10,
-                        children: filteredTags.map((tag) {
+                        children: visibleTags.map((tag) {
                           final isSelected = selectedTags.contains(tag);
                           return ChoiceChip(
                             label: Text(tag),
@@ -260,6 +266,17 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
                             ),
                           ),
                         ),
+                      if (filteredTags.length > 10)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "+${filteredTags.length - 10} more...",
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 );
@@ -271,6 +288,7 @@ class _TagSelectionPageState extends ConsumerState<TagSelectionPage> {
               ),
             ),
           ),
+
           const SizedBox(height: 20),
 
           // Submit button

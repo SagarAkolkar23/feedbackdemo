@@ -12,6 +12,8 @@ class RegisterEntityUseCase {
     required String city,
     required String pincode,
     required String industry,
+    required String email,
+    required String description,
     required String username,
   }) {
     // Business logic (if needed) before sending to repository
@@ -21,6 +23,8 @@ class RegisterEntityUseCase {
       city: city,
       pincode: pincode,
       industry : industry,
+      email : email,
+      description : description,
       username: username,
     );
   }

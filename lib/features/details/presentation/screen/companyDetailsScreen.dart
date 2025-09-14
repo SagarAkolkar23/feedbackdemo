@@ -20,6 +20,8 @@ class _CompanyDetailsPageState extends ConsumerState<CompanyDetailsPage> {
   final TextEditingController pincodeController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController industryController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -30,6 +32,8 @@ class _CompanyDetailsPageState extends ConsumerState<CompanyDetailsPage> {
   final _pincodeFocus = FocusNode();
   final _industryFocus = FocusNode();
   final _usernameFocus = FocusNode();
+  final _emailFocus = FocusNode();
+  final _descriptionFocus = FocusNode();
 
   @override
   void dispose() {
@@ -39,6 +43,8 @@ class _CompanyDetailsPageState extends ConsumerState<CompanyDetailsPage> {
     pincodeController.dispose();
     industryController.dispose();
     userNameController.dispose();
+    emailController.dispose();
+    descriptionController.dispose();
 
     _serviceProviderFocus.dispose();
     _stateFocus.dispose();
@@ -46,6 +52,8 @@ class _CompanyDetailsPageState extends ConsumerState<CompanyDetailsPage> {
     _pincodeFocus.dispose();
     _industryFocus.dispose();
     _usernameFocus.dispose();
+    _emailFocus.dispose();
+    _descriptionFocus.dispose();
 
     super.dispose();
   }
@@ -178,7 +186,27 @@ class _CompanyDetailsPageState extends ConsumerState<CompanyDetailsPage> {
                             onFieldSubmitted: (_) {
                               FocusScope.of(
                                 context,
-                              ).requestFocus(_usernameFocus);
+                              ).requestFocus(_emailFocus);
+                            },
+                          ),
+                          CustomTextField(
+                            heading: "Email",
+                            hintText: "Enter your Email",
+                            controller: emailController,
+                            focusNode: _emailFocus,
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context).requestFocus(_descriptionFocus);
+                            },
+                          ),
+                          CustomTextField(
+                            heading: "Description",
+                            hintText: "Enter Description",
+                            controller: descriptionController,
+                            focusNode: _descriptionFocus,
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context).requestFocus(_usernameFocus);
                             },
                           ),
                           CustomTextField(
@@ -263,6 +291,8 @@ class _CompanyDetailsPageState extends ConsumerState<CompanyDetailsPage> {
             city: cityController.text,
             pincode: pincodeController.text,
             industry: industryController.text,
+            email: emailController.text,
+            description: descriptionController.text,
             username: userNameController.text,
           );
     }

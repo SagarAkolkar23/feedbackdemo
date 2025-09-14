@@ -9,6 +9,8 @@ abstract class EntityRemoteDataSource {
     required String city,
     required String pincode,
     required String industry,
+    required String email,
+    required String description,
     required String username,
   });
 }
@@ -26,6 +28,8 @@ class EntityRemoteDataSourceImpl implements EntityRemoteDataSource {
     required String city,
     required String pincode,
     required String industry,
+    required String email,
+    required String description,
     required String username,
   }) async {
     try {
