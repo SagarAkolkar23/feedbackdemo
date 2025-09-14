@@ -45,32 +45,13 @@ class _EntityListScreenState extends State<EntityListScreen> {
                 child: ListTile(
                   title: Text(entity.handle),
                   trailing: ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        // ✅ Fetch full entity with tags
-                        final entityFull = await ApiService.getEntityFull(
-                          entity.id,
-                          entity.handle,
-                        );
-
-                        final tags = entityFull.tags
-                            .map((t) => t.name)
-                            .toList();
-
-                        // ✅ Navigate and pass entity + tags using "extra"
-                        context.go(
-                          '/feedbackform/${entity.id}/${Uri.encodeComponent(tags.join(","))}',
-                          extra: entityFull.details, // pass full details here
-                        );
-                      } catch (e) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                      }
+                    onPressed: () {
+                      // ✅ Navigate passing only entityId & entityHandle
+                      context.go(
+                        '/feedbackform/${entity.id}/${Uri.encodeComponent(entity.handle)}',
+                      );
                     },
-
-                    child: const Text('Fetch Details'),
+                    child: const Text('Open Feedback'),
                   ),
                 ),
               );

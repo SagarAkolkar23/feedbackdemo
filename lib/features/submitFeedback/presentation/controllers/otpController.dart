@@ -44,7 +44,7 @@ class OtpController extends StateNotifier<AsyncValue<OtpEntity?>> {
           .call(phone, otpController.text);
       state = AsyncValue.data(result);
 
-      isVerified = true; // ✅ mark verified ONLY after success
+      isVerified = true;
       stopOtpTimer();
     } catch (e, st) {
       state = AsyncValue.error(e, st);

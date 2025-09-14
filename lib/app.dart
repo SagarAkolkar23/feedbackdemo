@@ -7,7 +7,7 @@ class FeedbackApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Feedback Demo (Web)',
+      title: 'Pictonion',
       debugShowCheckedModeBanner: false,
       routerConfig: AppRoutes.router,
     );

@@ -8,39 +8,22 @@ class AppRoutes {
   static final router = GoRouter(
     initialLocation: '/EntityList',
     routes: [
-      // ✅ Updated to accept entityId (int), tags (list of strings), and extra data
+      // ✅ Only entityId & entityHandle in path
       GoRoute(
-        path: '/feedbackform/:entityId/:tags',
+        path: '/feedbackform/:entityId/:entityHandle',
         builder: (context, state) {
-          // Get params from the path
           final entityIdStr = state.pathParameters['entityId'];
-          final tagsString = state.pathParameters['tags'] ?? '';
-
-          // Convert entityId safely
+          final entityHandle = state.pathParameters['entityHandle'] ?? '';
           final entityId = int.tryParse(entityIdStr ?? '0') ?? 0;
-
-          // Decode and split tags safely
-          final decodedTags = Uri.decodeComponent(tagsString);
-          final tags = decodedTags.isEmpty
-              ? <String>[]
-              : decodedTags.split(',').where((t) => t.isNotEmpty).toList();
-
-          // ✅ Get the full entity details from extra (if passed)
-          final extra = state.extra;
-          EntityDetails? entityDetails;
-          if (extra is EntityDetails) {
-            entityDetails = extra;
-          }
 
           return FeedbackFormScreen(
             entityId: entityId,
-            tags: tags,
-            entityDetails: entityDetails, // 🔑 Available immediately
+            entityHandle: entityHandle,
           );
         },
       ),
       GoRoute(
-        path: '/EntityList',
+        path: '/',
         builder: (context, state) => const EntityListScreen(),
       ),
     ],

@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http_parser/http_parser.dart'; // 👈 for MediaType
-import 'dart:html' as html; 
+import 'dart:html' as html;
 
 import '../model/feedbackRequestModel.dart';
 import '../model/feedbackResponseModel.dart';
@@ -19,100 +19,56 @@ class FeedbackRemoteDataSource {
 
   Future<FeedbackResponseModel> submitFeedback(
     FeedbackRequestModel feedback,
-    String token,
-    dynamic file, // 👈 File, XFile, or html.File
+    dynamic file,
   ) async {
     final uri = Uri.parse('$baseUrl/feedback');
+    final request = http.MultipartRequest('POST', uri);
 
-    print("➡️ Submitting feedback to $uri");
-
-    final request = http.MultipartRequest("POST", uri);
-    request.headers['Authorization'] = 'Bearer $token';
-
-    // ✅ add form fields
+    // Fields
     request.fields['description'] = feedback.description;
-    request.fields['is_happy'] = feedback.isHappy.toString();
     request.fields['tags'] = jsonEncode(feedback.tags);
     request.fields['entityMentions'] = jsonEncode(feedback.entityMentions);
 
-    // ✅ add file if available
+    if (feedback.entityId != null) {
+      request.fields['entityId'] = feedback.entityId.toString();
+    }
+    if (feedback.userId != null) {
+      request.fields['userId'] = feedback.userId.toString();
+    }
+
+    // File handling 🔥
     if (file != null) {
       if (file is File) {
-        final ext = file.path.split('.').last.toLowerCase();
-        final type = _getMediaType(ext);
-
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'image', // 👈 must match backend field name
-            file.path,
-            filename: file.path.split('/').last,
-            contentType: type,
-          ),
-        );
-      } else if (file is XFile) {
-        final ext = file.path.split('.').last.toLowerCase();
-        final type = _getMediaType(ext);
-
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'image',
-            file.path,
-            filename: file.name,
-            contentType: type,
-          ),
-        );
-      } else if (kIsWeb && file is html.File) {
+        // Mobile
+        request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      } else if (file is html.File) {
+        // Web
         final reader = html.FileReader();
-        final completer = Completer<Uint8List>();
+        final completer = Completer<List<int>>();
         reader.readAsArrayBuffer(file);
         reader.onLoadEnd.listen((_) {
-          completer.complete(reader.result as Uint8List);
+          completer.complete(reader.result as List<int>);
         });
         final bytes = await completer.future;
 
-        final ext = file.name.split('.').last.toLowerCase();
-        final type = _getMediaType(ext);
-
         request.files.add(
           http.MultipartFile.fromBytes(
-            'image',
+            'file',
             bytes,
             filename: file.name,
-            contentType: type,
+            contentType: MediaType.parse(file.type),
           ),
         );
       }
     }
 
-    // send request
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
-    print("⬅️ Response Status: ${response.statusCode}");
-    print("⬅️ Response Body: ${response.body}");
-
-    if (response.statusCode == 201) {
+    if (response.statusCode == 201 || response.statusCode == 200) {
       return FeedbackResponseModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception(
-        'Failed to submit feedback. Status: ${response.statusCode}, Body: ${response.body}',
-      );
-    }
-  }
-
-  MediaType _getMediaType(String ext) {
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        return MediaType('image', 'jpeg');
-      case 'png':
-        return MediaType('image', 'png');
-      case 'gif':
-        return MediaType('image', 'gif');
-      case 'webp':
-        return MediaType('image', 'webp');
-      default:
-        return MediaType('application', 'octet-stream');
+      throw Exception('Failed to submit feedback: ${response.body}');
     }
   }
 }
