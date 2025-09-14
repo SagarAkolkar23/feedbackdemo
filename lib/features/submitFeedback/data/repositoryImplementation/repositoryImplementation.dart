@@ -9,31 +9,24 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
   FeedbackRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<FeedbackEntity> submitFeedback(
-    FeedbackEntity entity,
-    String token,
-    dynamic file, // 👈 added file param
-  ) async {
+  Future<FeedbackEntity> submitFeedback(FeedbackEntity entity, dynamic file) async {
     final request = FeedbackRequestModel(
       description: entity.description,
-      isHappy: entity.isHappy,
       tags: entity.tags,
       entityMentions: entity.entityMentions,
+      entityId: entity.entityId,
+      userId: entity.userId,
       imageUrl: entity.imageUrl,
     );
 
-    // 👇 forward file + token
-    final response = await remoteDataSource.submitFeedback(
-      request,
-      token,
-      file,
-    );
+    final response = await remoteDataSource.submitFeedback(request, file);
 
     return FeedbackEntity(
       description: entity.description,
-      isHappy: entity.isHappy,
       tags: entity.tags,
       entityMentions: entity.entityMentions,
+      entityId: entity.entityId,
+      userId: entity.userId,
       imageUrl: entity.imageUrl,
       feedbackId: response.feedbackId,
     );
