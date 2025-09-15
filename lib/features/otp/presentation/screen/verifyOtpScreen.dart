@@ -206,11 +206,48 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                               ),
                               TextButton(
                                 onPressed: _start == 0
-                                    ? () {
-                                        setState(() {
-                                          _start = 120;
-                                        });
-                                        startTimer();
+                                    ? () async {
+                                        try {
+                                          final otpController = ref.read(
+                                            otpControllerProvider.notifier,
+                                          );
+
+                                          // ⚡ call resendOtp with token (pass your token here)
+                                          await otpController.resendOtp(
+                                            "dummyToken",
+                                          );
+                                          // Replace "dummyToken" with your actual token source
+
+                                          // restart timer
+                                          setState(() {
+                                            _start = 120;
+                                          });
+                                          startTimer();
+
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "OTP Resent Successfully!",
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Failed to resend OTP: $e",
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
                                       }
                                     : null,
                                 child: Text(

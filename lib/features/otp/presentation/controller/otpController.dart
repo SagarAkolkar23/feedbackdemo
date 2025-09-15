@@ -54,6 +54,13 @@ class OtpController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  Future<OtpEntity> resendOtp(String token) async {
+    if (_phone == null) throw Exception("Phone number not set!");
+    print("🔄 [OtpController] Resending OTP for phone: $_phone");
+    return await requestOtp(_phone!, token);
+  }
+
+
   /// Optional: expose phone if needed elsewhere
   String? get phone => _phone;
 }
