@@ -62,7 +62,7 @@ class _WebCameraWidgetState extends State<WebCameraWidget> {
   }
 
   Future<void> _loadAvailableCameras() async {
-try {
+    try {
       final devices = await html.window.navigator.mediaDevices!
           .enumerateDevices();
       final mediaDevices = devices.cast<html.MediaDeviceInfo>();
@@ -75,7 +75,6 @@ try {
     } catch (e) {
       debugPrint("Error fetching devices: $e");
     }
-
   }
 
   void _clearCameraView() {
@@ -212,10 +211,6 @@ try {
 
     _recorder!.start();
     setState(() => _isRecording = true);
-
-    Future.delayed(const Duration(seconds: 10), () {
-      if (_isRecording) _stopRecording();
-    });
   }
 
   Future<void> _stopRecording() async {
@@ -419,28 +414,43 @@ try {
                         ),
                       ),
                     ),
+                    // 🔹 Record button now toggles
                     ElevatedButton.icon(
-                      onPressed: _cameraInitialized && !_isRecording
-                          ? _startRecording
+                      onPressed: _cameraInitialized
+                          ? () {
+                              if (_isRecording) {
+                                _stopRecording();
+                              } else {
+                                _startRecording();
+                              }
+                            }
                           : null,
-                      icon: const Icon(Icons.videocam, size: 20),
-                      label: const Text("Record"),
+                      icon: Icon(
+                        _isRecording ? Icons.stop : Icons.videocam,
+                        size: 20,
+                      ),
+                      label: Text(_isRecording ? "Stop" : "Record"),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade50,
-                        foregroundColor: Colors.red.shade700,
+                        backgroundColor: _isRecording
+                            ? Colors.orange.shade50
+                            : Colors.red.shade50,
+                        foregroundColor: _isRecording
+                            ? Colors.orange.shade700
+                            : Colors.red.shade700,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),
                       ),
                     ),
+                    // 🔹 Close Camera button
                     ElevatedButton.icon(
-                      onPressed: _isRecording ? _stopRecording : null,
-                      icon: const Icon(Icons.stop, size: 20),
-                      label: const Text("Stop"),
+                      onPressed: _toggleCamera,
+                      icon: const Icon(Icons.close, size: 20),
+                      label: const Text("Close"),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange.shade50,
-                        foregroundColor: Colors.orange.shade700,
+                        backgroundColor: Colors.grey.shade200,
+                        foregroundColor: Colors.grey.shade800,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
@@ -462,18 +472,6 @@ try {
                   ),
               ],
             ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton.icon(
-              onPressed: _toggleCamera,
-              icon: const Icon(Icons.close, size: 18),
-              label: const Text("Close Camera"),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey.shade700,
-              ),
-            ),
-          ),
         ],
       ],
     );

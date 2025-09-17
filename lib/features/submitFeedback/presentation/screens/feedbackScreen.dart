@@ -39,11 +39,9 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
   final List<Color> ratingColors = [Colors.blue];
   dynamic _selectedMedia;
   final ImagePicker _picker = ImagePicker();
-
   late final String _videoPreviewViewType;
   late final html.VideoElement _videoPreviewElement;
   String? _videoPreviewUrl;
-
   EntityDetails? _entityDetails;
   List<Tag> _entityTags = [];
   bool _loadingDetails = true;
@@ -70,6 +68,15 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
     }
 
     _fetchEntityFull();
+  }
+
+  bool get _isMobileWeb {
+    if (!kIsWeb) return false;
+    final ua = html.window.navigator.userAgent.toLowerCase();
+    return ua.contains("iphone") ||
+        ua.contains("android") ||
+        ua.contains("ipad") ||
+        ua.contains("mobile");
   }
 
   Future<void> _fetchEntityFull() async {
@@ -149,8 +156,11 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
       final file = uploadInput.files?.first;
       if (file != null) _updateSelectedMedia(file);
     } else {
-      final picked = await _picker.pickImage(source: ImageSource.gallery);
-      if (picked != null) _updateSelectedMedia(File(picked.path));
+      // Let user pick either image or video
+      final picked = await _picker.pickMedia(); // <-- new API (Flutter 3.7+)
+      if (picked != null) {
+        _updateSelectedMedia(File(picked.path));
+      }
     }
   }
 
@@ -158,11 +168,20 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
     _updateSelectedMedia(media);
   }
 
-  Future<void> _pickMediaFromCamera({required bool isVideo}) async {
-    final picked = isVideo
+  Future<void> _pickMediaFromCamera({bool video = false}) async {
+    final pickedFile = video
         ? await _picker.pickVideo(source: ImageSource.camera)
         : await _picker.pickImage(source: ImageSource.camera);
-    if (picked != null) _updateSelectedMedia(File(picked.path));
+
+    if (pickedFile != null) {
+      if (kIsWeb) {
+        _updateSelectedMedia(
+          pickedFile,
+        ); // Web (XFile works as Blob internally)
+      } else {
+        _updateSelectedMedia(File(pickedFile.path)); // Mobile app: wrap in File
+      }
+    }
   }
 
   void _showMediaOptions() {
@@ -180,7 +199,7 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                 title: const Text("Take Photo"),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickMediaFromCamera(isVideo: false);
+                  _pickMediaFromCamera(video: false);
                 },
               ),
               ListTile(
@@ -188,7 +207,7 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                 title: const Text("Record Video"),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickMediaFromCamera(isVideo: true);
+                  _pickMediaFromCamera(video: true);
                 },
               ),
               ListTile(
@@ -275,6 +294,24 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 24.0),
+                            child: Text(
+                              (_entityDetails?.description != null &&
+                                      _entityDetails!.description
+                                          .trim()
+                                          .isNotEmpty)
+                                  ? _entityDetails!.description
+                                  : "Description not available",
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.black87,
+                                height: 1.4,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+
                           const Text(
                             "We value your feedback 💬",
                             style: TextStyle(
@@ -292,27 +329,6 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
                               color: Colors.black54,
                             ),
                             textAlign: TextAlign.center,
-                          ),
-
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 16.0,
-                              bottom: 24.0,
-                            ),
-                            child: Text(
-                              (_entityDetails?.description != null &&
-                                      _entityDetails!.description
-                                          .trim()
-                                          .isNotEmpty)
-                                  ? _entityDetails!.description
-                                  : "Description not available",
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black87,
-                                height: 1.4,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
                           ),
 
                           const SizedBox(height: 32),
@@ -412,26 +428,71 @@ class _FeedbackFormScreenState extends ConsumerState<FeedbackFormScreen> {
         Expanded(
           flex: 2,
           child: kIsWeb
-              ? Column(
-                  children: [
-                    WebCameraWidget(onMediaCaptured: _onWebMediaCaptured),
-                    const SizedBox(height: 12),
-                    Text("OR", style: TextStyle(color: Colors.grey.shade600)),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.photo_library_outlined, size: 20),
-                      label: const Text("Choose from files"),
-                      onPressed: _chooseFromGallery,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.indigo,
-                        side: BorderSide(color: Colors.indigo.shade200),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
+              ? (_isMobileWeb
+                    // 👉 Mobile web (phone/tablet browser): use native camera app
+                    ? Column(
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.camera_alt),
+                            label: const Text("Take Photo"),
+                            onPressed: () {
+                              final uploadInput = html.FileUploadInputElement()
+                                ..accept = 'image/*'
+                                ..attributes['capture'] = 'environment';
+                              uploadInput.click();
+                              uploadInput.onChange.listen((event) {
+                                final file = uploadInput.files?.first;
+                                if (file != null) _updateSelectedMedia(file);
+                              });
+                            },
+                          ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.videocam),
+                            label: const Text("Record Video"),
+                            onPressed: () {
+                              final uploadInput = html.FileUploadInputElement()
+                                ..accept = 'video/*'
+                                ..attributes['capture'] = 'environment';
+                              uploadInput.click();
+                              uploadInput.onChange.listen((event) {
+                                final file = uploadInput.files?.first;
+                                if (file != null) _updateSelectedMedia(file);
+                              });
+                            },
+                          ),
+
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            icon: const Icon(
+                              Icons.photo_library_outlined,
+                              size: 20,
+                            ),
+                            label: const Text("Choose from files"),
+                            onPressed: _chooseFromGallery,
+                          ),
+                        ],
+                      )
+                    // 👉 Desktop web: inline webcam preview
+                    : Column(
+                        children: [
+                          WebCameraWidget(onMediaCaptured: _onWebMediaCaptured),
+                          const SizedBox(height: 12),
+                          Text(
+                            "OR",
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            icon: const Icon(
+                              Icons.photo_library_outlined,
+                              size: 20,
+                            ),
+                            label: const Text("Choose from files"),
+                            onPressed: _chooseFromGallery,
+                          ),
+                        ],
+                      ))
+              // 👉 Native Android/iOS app (non-web build): keep your existing code
               : Column(
                   children: [
                     const Text(

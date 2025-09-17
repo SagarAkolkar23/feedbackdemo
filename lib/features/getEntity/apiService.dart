@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      "http://localhost:5005"; 
+      "https://select-original-compaq-drums.trycloudflare.com"; 
 
   /// Fetch all entities (basic info)
   static Future<List<Entity>> getAllEntities() async {
